@@ -33,7 +33,7 @@ func (api AmazonMWSAPI) genSignAndFetch(Action string, ActionPath string, Parame
 	if err != nil {
 		return "", err
 	}
-
+	fmt.Println(signedurl)
 	resp, err := http.Get(signedurl)
 	if err != nil {
 		return "", err
@@ -92,11 +92,18 @@ func SignAmazonUrl(origUrl *url.URL, api AmazonMWSAPI) (signedUrl string, err er
 	escapeUrl = strings.Replace(escapeUrl, ":", "%3A", -1)
 
 	params := strings.Split(escapeUrl, "&")
+	//Mikeshimura 
+	for i:=0;i<len(params);i++{
+		params[i]=strings.Replace(params[i],"=","#",-1)
+	}
 	sort.Strings(params)
+	for i:=0;i<len(params);i++{
+		params[i]=strings.Replace(params[i],"#","=",-1)
+	}
 	sortedParams := strings.Join(params, "&")
 
 	toSign := fmt.Sprintf("GET\n%s\n%s\n%s", origUrl.Host, origUrl.Path, sortedParams)
-
+	//fmt.Printf("toSign %v-n",toSign)
 	hasher := hmac.New(sha256.New, []byte(api.SecretKey))
 	_, err = hasher.Write([]byte(toSign))
 	if err != nil {
